@@ -1,0 +1,16 @@
+{
+  "name": "tn-naturals-ai",
+  "version": "1.0.0",
+  "description": "TN Naturals WhatsApp AI Assistant",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.56.0"
+  }
+}
