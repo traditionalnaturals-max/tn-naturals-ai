@@ -15,6 +15,7 @@ const VERIFY_TOKEN = "tnnaturals123";
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
+// Home
 app.get("/", (req, res) => {
   res.send("TN Naturals AI Bot Running Successfully");
 });
@@ -25,12 +26,14 @@ app.get("/webhook", (req, res) => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode && token === VERIFY_TOKEN) {
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("Webhook Verified");
     return res.status(200).send(challenge);
   }
 
   return res.sendStatus(403);
 });
+
 // Receive WhatsApp Messages
 app.post("/webhook", async (req, res) => {
   try {
@@ -42,13 +45,17 @@ app.post("/webhook", async (req, res) => {
       body.entry[0].changes &&
       body.entry[0].changes[0].value.messages
     ) {
-      const message =
-        body.entry[0].changes[0].value.messages[0];
+      const message = body.entry[0].changes[0].value.messages[0];
 
       const from = message.from;
       const userMessage = message.text?.body || "";
 
       console.log("User:", userMessage);
+      console.log("PHONE_NUMBER_ID:", PHONE_NUMBER_ID);
+      console.log(
+        "TOKEN:",
+        WHATSAPP_TOKEN ? WHATSAPP_TOKEN.substring(0, 20) : "NO TOKEN"
+      );
 
       // AI Response
       const ai = await client.chat.completions.create({
@@ -69,7 +76,7 @@ app.post("/webhook", async (req, res) => {
       const reply = ai.choices[0].message.content;
 
       // Send WhatsApp Reply
-      await axios.post(
+      const response = await axios.post(
         `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
         {
           messaging_product: "whatsapp",
@@ -87,15 +94,18 @@ app.post("/webhook", async (req, res) => {
         }
       );
 
-      console.log("Reply Sent");
+      console.log("Reply Sent Successfully");
+      console.log(response.data);
     }
 
     res.sendStatus(200);
   } catch (err) {
+    console.error("ERROR:");
     console.error(err.response?.data || err.message);
     res.sendStatus(500);
   }
 });
+
 // Start Server
 const PORT = process.env.PORT || 10000;
 
