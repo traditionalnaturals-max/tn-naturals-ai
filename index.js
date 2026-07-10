@@ -70,7 +70,7 @@ app.post("/webhook", async (req, res) => {
 
       // Send WhatsApp Reply
       await axios.post(
-        `https://graph.facebook.com/v23.0/${PHONE_NUMBER_ID}/messages`,
+        `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages
         {
           messaging_product: "whatsapp",
           to: from,
