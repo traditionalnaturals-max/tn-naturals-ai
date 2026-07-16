@@ -4,6 +4,9 @@ const express = require("express");
 const axios = require("axios");
 const OpenAI = require("openai");
 
+const fs = require("fs");
+const knowledgeBase = fs.readFileSync("knowledge-base.md", "utf8") + "\n\n" + fs.readFileSync("knowledge_base_faq.md", "utf8");
+
 const app = express();
 app.use(express.json());
 
@@ -62,10 +65,10 @@ app.post("/webhook", async (req, res) => {
         model: "gpt-4.1-mini",
         messages: [
           {
-            role: "system",
-            content:
-              "You are TN Naturals AI Assistant. Reply politely in Bengali unless the customer writes in English.",
-          },
+  role: "system",
+  content:
+    "You are TN Naturals AI Assistant. Always answer ONLY using the following Knowledge Base.\n\n" + knowledgeBase,
+},
           {
             role: "user",
             content: userMessage,
