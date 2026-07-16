@@ -84,44 +84,51 @@ function normalize(text){
 
 }
 
-function searchKnowledge(question){
+function searchKnowledge(question) {
 
-    const query=normalize(question);
+    const query = normalize(question);
 
-    const parts=knowledgeBase.split(/\n(?=#|\d+\.|\-)/);
+    const faqBlocks = knowledgeBase.split("## FAQ");
 
-    let best=null;
+    let bestAnswer = null;
+    let bestScore = 0;
 
-    let bestScore=0;
+    for (const block of faqBlocks) {
 
-    for(const part of parts){
+        const qMatch = block.match(/### Question\s*([\s\S]*?)### Answer/i);
+        const aMatch = block.match(/### Answer\s*([\s\S]*)/i);
 
-        const data=normalize(part);
+        if (!qMatch || !aMatch) continue;
 
-        let score=0;
+        const faqQuestion = normalize(qMatch[1]);
+        const faqAnswer = aMatch[1].trim();
 
-        query.split(" ").forEach(word=>{
+        let score = 0;
 
-            if(word.length<3)return;
+        const words = query.split(" ");
 
-            if(data.includes(word))score++;
+        for (const word of words) {
 
-        });
+            if (word.length < 2) continue;
 
-        if(score>bestScore){
+            if (faqQuestion.includes(word)) {
+                score++;
+            }
 
-            bestScore=score;
+        }
 
-            best=part;
+        if (score > bestScore) {
+
+            bestScore = score;
+            bestAnswer = faqAnswer;
 
         }
 
     }
 
-    return bestScore>=2?best:null;
+    return bestAnswer;
 
 }
-
 // =========================
 // AI System Prompt
 // =========================
