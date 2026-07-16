@@ -217,32 +217,7 @@ if (faqReply) {
   return res.sendStatus(200);
 }
 
-const faqReply = searchFAQ(userMessage);
 
-if (faqReply) {
-
-  await axios.post(
-    `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: from,
-      type: "text",
-      text: {
-        body: faqReply,
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  console.log("✅ FAQ Reply Sent");
-
-  return res.sendStatus(200);
-}
         
 // =============================
 // OpenAI Fallback
