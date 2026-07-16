@@ -6,381 +6,335 @@ const OpenAI = require("openai");
 const fs = require("fs");
 
 const app = express();
-
 app.use(express.json());
 
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-// =========================
-// Load Knowledge
-// =========================
-
+// =============================
+// Load Knowledge Base
+// =============================
 const knowledgeBase =
-    fs.readFileSync("./knowledge-base.md", "utf8") +
-    "\n\n" +
-    fs.readFileSync("./knowledge_base_faq.md", "utf8");
+  fs.readFileSync("knowledge-base.md", "utf8") +
+  "\n\n" +
+  fs.readFileSync("knowledge_base_faq.md", "utf8");
 
-// =========================
-// ENV
-// =========================
+// =============================
+// FAQ Search Engine
+// =============================
 
-const VERIFY_TOKEN = "tnnaturals123";
+const faqData = fs.readFileSync("knowledge_base_faq.md", "utf8");
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
-
-// =========================
-// Customer Memory
-// =========================
-
-const memory = new Map();
-
-function getHistory(phone){
-
-    if(!memory.has(phone)){
-
-        memory.set(phone,[]);
-
-    }
-
-    return memory.get(phone);
-
-}
-
-function saveHistory(phone,role,content){
-
-    const history=getHistory(phone);
-
-    history.push({
-
-        role,
-
-        content
-
-    });
-
-    if(history.length>20){
-
-        history.shift();
-
-    }
-
-}
-
-// =========================
-// Search Knowledge
-// =========================
-
-function normalize(text){
+function normalize(text) {
 
     return text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu," ")
-    .replace(/\s+/g," ")
-    .trim();
+        .toLowerCase()
+
+        // Remove Bengali punctuation
+        .replace(/[।,!?;:"'()\-]/g, " ")
+
+        // Remove English punctuation
+        .replace(/[^\u0980-\u09FFa-z0-9 ]/gi, " ")
+
+        // Remove extra spaces
+        .replace(/\s+/g, " ")
+
+        .trim();
 
 }
+function similarity(question, faqQuestion) {
 
-function searchKnowledge(question) {
+    const q1 = normalize(question).split(" ");
+    const q2 = normalize(faqQuestion).split(" ");
 
-    const query = normalize(question);
+    let matched = 0;
 
-    const faqBlocks = knowledgeBase.split("## FAQ");
-
-    let bestAnswer = null;
-    let bestScore = 0;
-
-    for (const block of faqBlocks) {
-
-        const qMatch = block.match(/### Question\s*([\s\S]*?)### Answer/i);
-        const aMatch = block.match(/### Answer\s*([\s\S]*)/i);
-
-        if (!qMatch || !aMatch) continue;
-
-        const faqQuestion = normalize(qMatch[1]);
-        const faqAnswer = aMatch[1].trim();
-
-        let score = 0;
-
-        const words = query.split(" ");
-
-        for (const word of words) {
-
-            if (word.length < 2) continue;
-
-            if (faqQuestion.includes(word)) {
-                score++;
-            }
-
+    for (const word of q1) {
+        if (q2.includes(word)) {
+            matched++;
         }
-
-        if (score > bestScore) {
-
-            bestScore = score;
-            bestAnswer = faqAnswer;
-
-        }
-
     }
 
-    return bestAnswer;
+    return matched / Math.max(q1.length, q2.length);
 
 }
-// =========================
-// AI System Prompt
-// =========================
+function searchFAQ(question) {
 
-const SYSTEM_PROMPT = `
-You are a TN Naturals Support Executive.
+  const userQuestion = normalize(question);
+
+  const blocks = faqData.split("--------------------------------------------------");
+
+  for (const block of blocks) {
+
+    const q = block.match(/### Question([\s\S]*?)### Answer/i);
+
+    const a = block.match(/### Answer([\s\S]*)/i);
+
+    if (!q || !a) continue;
+
+    const faqQuestion = normalize(q[1]);
+const score = similarity(userQuestion, faqQuestion);
+      if (score >= 0.75) {
+    return a[1].trim();
+}
+   // Exact Match
+if (faqQuestion === userQuestion) {
+    return a[1].trim();
+}
+
+// FAQ contains user question
+if (faqQuestion.includes(userQuestion)) {
+    return a[1].trim();
+}
+
+// User question contains FAQ
+if (userQuestion.includes(faqQuestion)) {
+    return a[1].trim();
+}
+
+// Word Match
+const faqWords = faqQuestion.split(" ");
+const userWords = userQuestion.split(" ");
+
+let matched = 0;
+
+for (const word of userWords) {
+    if (faqWords.includes(word)) {
+        matched++;
+    }
+}
+
+if (matched >= Math.max(2, Math.floor(userWords.length * 0.7))) {
+    return a[1].trim();
+}
+
+  }
+
+  return null;
+
+}
+
+// =============================
+// OpenAI
+// =============================
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// =============================
+// Environment Variables
+// =============================
+const VERIFY_TOKEN = "tnnaturals123";
+const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
+const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+
+// =============================
+// Home
+// =============================
+app.get("/", (req, res) => {
+  res.send("TN Naturals AI Bot Running Successfully");
+});
+
+// =============================
+// Webhook Verification
+// =============================
+app.get("/webhook", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("✅ Webhook Verified");
+    return res.status(200).send(challenge);
+  }
+
+  return res.sendStatus(403);
+});
+
+// =============================
+// Receive WhatsApp Messages
+// =============================
+app.post("/webhook", async (req, res) => {
+  try {
+    const body = req.body;
+
+    if (
+      body.object &&
+      body.entry &&
+      body.entry[0].changes &&
+      body.entry[0].changes[0].value.messages
+    ) {
+      const message = body.entry[0].changes[0].value.messages[0];
+
+      const from = message.from;
+
+      // Text Message
+      let userMessage = "";
+
+      if (message.type === "text") {
+        userMessage = message.text.body;
+      } else {
+        userMessage = "";
+      }
+
+      console.log("📩 User:", userMessage);
+
+      // Ignore empty messages
+      if (!userMessage.trim()) {
+        return res.sendStatus(200);
+      }
+
+      // =============================
+      // Ask OpenAI using Knowledge Base
+      // =============================
+
+        // =============================
+// FAQ Search First
+// =============================
+
+const faqReply = searchFAQ(userMessage);
+
+if (faqReply) {
+
+  await axios.post(
+    `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: from,
+      type: "text",
+      text: {
+        body: faqReply,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  console.log("✅ FAQ Reply Sent");
+
+  return res.sendStatus(200);
+}
+
+const faqReply = searchFAQ(userMessage);
+
+if (faqReply) {
+
+  await axios.post(
+    `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: from,
+      type: "text",
+      text: {
+        body: faqReply,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  console.log("✅ FAQ Reply Sent");
+
+  return res.sendStatus(200);
+}
+        
+// =============================
+// OpenAI Fallback
+// =============================
+        
+        const ai = await client.chat.completions.create({
+        model: "gpt-4.1-mini",
+        temperature: 0,
+        messages: [
+          {
+            role: "system",
+            content: `
+You are TN Naturals Customer Support Executive.
+
+Use ONLY the information from the Knowledge Base below.
+
+${knowledgeBase}
 
 Rules:
 
-1. Never say you are AI.
-2. Never mention OpenAI.
-3. Never mention GPT.
-4. Never mention Knowledge Base.
-5. Use ONLY the provided knowledge.
-6. Never guess product information.
-7. Never create medical advice.
-8. Speak naturally.
-9. Reply in the customer's language.
-10. Keep replies short and professional.
+1. If the customer's question exactly matches or clearly matches an FAQ, return the Answer EXACTLY as written.
 
-If the answer is not available, reply ONLY:
+2. Never rewrite, shorten, improve, explain or translate FAQ answers.
 
-"আপনার প্রশ্নটি নোট করা হয়েছে। সঠিক তথ্য নিশ্চিত করে আপনাকে জানানো হবে।"
-`;
+3. Never create any medical advice yourself.
 
-// =========================
-// Build Messages
-// =========================
+4. If the answer is NOT available inside the Knowledge Base, DO NOT guess.
 
-function buildMessages(phone, userMessage) {
+5. If the answer is NOT available inside the Knowledge Base or FAQ, reply exactly:
 
-    const history = getHistory(phone);
+"এই বিষয়ে বিস্তারিত জানতে অনুগ্রহ করে 9862900335 নম্বরে কল করুন। ধন্যবাদ।"
 
-    const matchedKnowledge = searchKnowledge(userMessage);
+6. Never use these words:
+- AI
+- ChatGPT
+- Knowledge Base
+- Language Model
 
-    let system = SYSTEM_PROMPT;
-
-    if (matchedKnowledge) {
-
-        system += `
-
-Relevant Knowledge:
-
-${matchedKnowledge}
-
-Answer ONLY using the above knowledge.
-Never use outside knowledge.
-`;
-
-    }
-
-    return [
-
-        {
-            role: "system",
-            content: system,
-        },
-
-        ...history,
-
-        {
+7. Always behave like a real TN Naturals Customer Support Executive.
+            `
+          },
+          {
             role: "user",
-            content: userMessage,
+            content: userMessage
+          }
+        ]
+      });
+
+      const reply = ai.choices[0].message.content.trim();
+
+      console.log("🤖 Reply:", reply);
+
+      // =============================
+      // Send WhatsApp Reply
+      // =============================
+      await axios.post(
+        `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: "whatsapp",
+          to: from,
+          type: "text",
+          text: {
+            body: reply,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
 
-    ];
-
-}
-
-// =========================
-// Generate Reply
-// =========================
-
-async function generateReply(phone, userMessage) {
-
-    // প্রথমে FAQ থেকে উত্তর খুঁজবে
-    const faqAnswer = searchKnowledge(userMessage);
-
-    // FAQ-তে উত্তর থাকলে সেটাই সরাসরি পাঠাবে
-    if (faqAnswer) {
-
-        saveHistory(phone, "user", userMessage);
-        saveHistory(phone, "assistant", faqAnswer);
-
-        return faqAnswer;
-
+      console.log("✅ Reply Sent Successfully");
     }
 
-    // FAQ-তে উত্তর না থাকলে GPT ব্যবহার করবে
-    const messages = buildMessages(phone, userMessage);
+    res.sendStatus(200);
 
-    const response = await client.chat.completions.create({
+  } catch (err) {
+    console.error("❌ ERROR:");
+    console.error(err.response?.data || err.message);
 
-        model: "gpt-4.1-mini",
-
-        temperature: 0.1,
-
-        max_tokens: 350,
-
-        messages
-
-    });
-
-    const reply = response.choices[0].message.content.trim();
-
-    saveHistory(phone, "user", userMessage);
-    saveHistory(phone, "assistant", reply);
-
-    return reply;
-
-}
-// =========================
-// Home Route
-// =========================
-
-app.get("/", (req, res) => {
-
-    res.send("TN Naturals AI Server Running");
-
+    res.sendStatus(500);
+  }
 });
 
-// =========================
-// Webhook Verification
-// =========================
-
-app.get("/webhook", (req, res) => {
-
-    const mode = req.query["hub.mode"];
-    const token = req.query["hub.verify_token"];
-    const challenge = req.query["hub.challenge"];
-
-    if (mode === "subscribe" && token === VERIFY_TOKEN) {
-
-        console.log("Webhook Verified");
-
-        return res.status(200).send(challenge);
-
-    }
-
-    return res.sendStatus(403);
-
-});
-
-// =========================
-// WhatsApp Webhook
-// =========================
-
-app.post("/webhook", async (req, res) => {
-
-    try {
-
-        const body = req.body;
-
-        if (
-
-            body.object &&
-            body.entry &&
-            body.entry[0].changes &&
-            body.entry[0].changes[0].value.messages
-
-        ) {
-
-            const message =
-            body.entry[0].changes[0].value.messages[0];
-
-            const from = message.from;
-
-            const userMessage =
-            message.text?.body || "";
-
-            console.log("Customer :", userMessage);
-
-            const reply =
-            await generateReply(from,userMessage);
-
-            await axios.post(
-
-                `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
-
-                {
-
-                    messaging_product:"whatsapp",
-
-                    to:from,
-
-                    type:"text",
-
-                    text:{
-
-                        body:reply
-
-                    }
-
-                },
-
-                {
-
-                    headers:{
-
-                        Authorization:`Bearer ${WHATSAPP_TOKEN}`,
-
-                        "Content-Type":"application/json"
-
-                    }
-
-                }
-
-            );
-
-            console.log("Reply Sent");
-
-        }
-
-        res.sendStatus(200);
-
-    }
-
-    catch(err){
-
-        console.error(err.response?.data || err.message);
-
-        res.sendStatus(500);
-
-    }
-
-});
-
-// =========================
+// =============================
 // Start Server
-// =========================
-
+// =============================
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
-
-    console.log(`🚀 TN Naturals AI Running on Port ${PORT}`);
-
-});
-
-// =========================
-// Global Error Handler
-// =========================
-
-process.on("unhandledRejection", (err) => {
-
-    console.error("Unhandled Rejection:", err);
-
-});
-
-process.on("uncaughtException", (err) => {
-
-    console.error("Uncaught Exception:", err);
-
+  console.log(`🚀 TN Naturals AI Server running on port ${PORT}`);
 });
 
