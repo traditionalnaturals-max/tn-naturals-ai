@@ -202,34 +202,44 @@ Never use outside knowledge.
 // Generate Reply
 // =========================
 
-async function generateReply(phone, userMessage){
+async function generateReply(phone, userMessage) {
 
-    const messages = buildMessages(phone,userMessage);
+    // প্রথমে FAQ থেকে উত্তর খুঁজবে
+    const faqAnswer = searchKnowledge(userMessage);
 
-    const response =
-    await client.chat.completions.create({
+    // FAQ-তে উত্তর থাকলে সেটাই সরাসরি পাঠাবে
+    if (faqAnswer) {
 
-        model:"gpt-4.1-mini",
+        saveHistory(phone, "user", userMessage);
+        saveHistory(phone, "assistant", faqAnswer);
 
-        temperature:0.1,
+        return faqAnswer;
 
-        max_tokens:350,
+    }
+
+    // FAQ-তে উত্তর না থাকলে GPT ব্যবহার করবে
+    const messages = buildMessages(phone, userMessage);
+
+    const response = await client.chat.completions.create({
+
+        model: "gpt-4.1-mini",
+
+        temperature: 0.1,
+
+        max_tokens: 350,
 
         messages
 
     });
 
-    const reply =
-    response.choices[0].message.content.trim();
+    const reply = response.choices[0].message.content.trim();
 
-    saveHistory(phone,"user",userMessage);
-
-    saveHistory(phone,"assistant",reply);
+    saveHistory(phone, "user", userMessage);
+    saveHistory(phone, "assistant", reply);
 
     return reply;
 
 }
-
 // =========================
 // Home Route
 // =========================
