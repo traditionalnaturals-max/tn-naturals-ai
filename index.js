@@ -191,7 +191,7 @@ app.post("/webhook", async (req, res) => {
 // =============================
 
 const faqReply = searchFAQ(userMessage);
-
+console.log("FAQ Result:", faqReply);
 if (faqReply) {
 
   await axios.post(
