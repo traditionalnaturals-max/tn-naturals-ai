@@ -333,6 +333,7 @@ if (faqReply) {
 // =============================
 // OpenAI Fallback
 // =============================
+      let history = conversations.get(from) || [];
         
         const ai = await client.chat.completions.create({
         model: "gpt-4.1-mini",
@@ -400,6 +401,7 @@ history.push(
 if (history.length > 10) {
   history.splice(0, history.length - 10);
 }
+    conversations.set(from, history);
       
       console.log("🤖 Reply:", reply);
 
