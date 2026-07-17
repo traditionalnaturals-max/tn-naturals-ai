@@ -5,8 +5,27 @@ const axios = require("axios");
 const OpenAI = require("openai");
 const fs = require("fs");
 const FormData = require("form-data");
+const mongoose = require("mongoose");
 const path = require("path");
 const conversations = new Map();
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => console.error("❌ MongoDB Error:", err));
+const conversationSchema = new mongoose.Schema({
+  phone: {
+    type: String,
+    unique: true
+  },
+  history: [
+    {
+      role: String,
+      content: String
+    }
+  ]
+});
+
+const Conversation = mongoose.model("Conversation", conversationSchema);
+
 const app = express();
 app.use(express.json());
 
@@ -196,11 +215,16 @@ app.post("/webhook", async (req, res) => {
 
       const from = message.from;
 
-      if (!conversations.has(from)) {
-  conversations.set(from, []);
+     let conversation = await Conversation.findOne({ phone: from });
+
+if (!conversation) {
+    conversation = await Conversation.create({
+        phone: from,
+        history: []
+    });
 }
 
-const history = conversations.get(from);
+const history = conversation.history;
       // Text Message
      let userMessage = "";
 
@@ -400,7 +424,9 @@ history.push(
 if (history.length > 10) {
   history.splice(0, history.length - 10);
 }
-    conversations.set(from, history);
+
+conversation.history = history;
+await conversation.save();
       
       console.log("🤖 Reply:", reply);
 
