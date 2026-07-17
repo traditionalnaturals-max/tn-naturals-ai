@@ -126,6 +126,16 @@ const badWords = [
   "mc",
   "bc",
   "bal",
+ "Bl",
+"Sona",
+"Bara",
+"ভাড়া",
+"Hda",
+"Hedarput",
+"তর",
+"সুয়োর",
+"Suyor",
+"Sala",
   "bokachoda"
 ];
 
