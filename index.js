@@ -333,8 +333,7 @@ if (faqReply) {
 // =============================
 // OpenAI Fallback
 // =============================
-      let history = conversations.get(from) || [];
-        
+          
         const ai = await client.chat.completions.create({
         model: "gpt-4.1-mini",
         temperature: 0,
