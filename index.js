@@ -4,6 +4,8 @@ const express = require("express");
 const axios = require("axios");
 const OpenAI = require("openai");
 const fs = require("fs");
+const FormData = require("form-data");
+const path = require("path");
 const conversations = new Map();
 const app = express();
 app.use(express.json());
