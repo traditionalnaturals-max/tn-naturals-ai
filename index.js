@@ -111,6 +111,24 @@ if (matched >= Math.max(2, Math.floor(userWords.length * 0.7))) {
 
 }
 
+const badWords = [
+  "শালা",
+  "মাগী",
+  "মাদারচোদ",
+  "বাঞ্চোদ",
+  "চোদ",
+  "চুদি",
+  "বাল",
+  "খানকির",
+  "fuck",
+  "fucking",
+  "bastard",
+  "mc",
+  "bc",
+  "bal",
+  "bokachoda"
+];
+
 // =============================
 // OpenAI
 // =============================
@@ -190,6 +208,37 @@ app.post("/webhook", async (req, res) => {
 // FAQ Search First
 // =============================
 
+// ===========================
+// Bad Word Filter
+// ===========================
+
+const isBadWord = badWords.some(word =>
+  userMessage.toLowerCase().includes(word.toLowerCase())
+);
+
+if (isBadWord) {
+
+  await axios.post(
+    `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: from,
+      type: "text",
+      text: {
+        body: "এইখানে গালি বা অশালীন ভাষা ব্যবহার করবেন না। এতে পরে আপনার সমস্যাও হতে পারে। অনুগ্রহ করে ভদ্র ভাষায় আপনার সমস্যাটি জানান।"
+      }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.sendStatus(200);
+}
+      
 const faqReply = searchFAQ(userMessage);
 console.log("FAQ Result:", faqReply);
 if (faqReply) {
