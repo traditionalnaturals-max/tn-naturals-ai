@@ -4,7 +4,7 @@ const express = require("express");
 const axios = require("axios");
 const OpenAI = require("openai");
 const fs = require("fs");
-
+const conversations = new Map();
 const app = express();
 app.use(express.json());
 
@@ -194,6 +194,11 @@ app.post("/webhook", async (req, res) => {
 
       const from = message.from;
 
+      if (!conversations.has(from)) {
+  conversations.set(from, []);
+}
+
+const history = conversations.get(from);
       // Text Message
       let userMessage = "";
 
@@ -325,6 +330,7 @@ Rules:
 
                `
           },
+          ...history,
           {
             role: "user",
             content: userMessage
@@ -333,7 +339,21 @@ Rules:
       });
 
       const reply = ai.choices[0].message.content.trim();
+history.push(
+  {
+    role: "user",
+    content: userMessage
+  },
+  {
+    role: "assistant",
+    content: reply
+  }
+);
 
+if (history.length > 10) {
+  history.splice(0, history.length - 10);
+}
+      
       console.log("🤖 Reply:", reply);
 
       // =============================
