@@ -321,7 +321,9 @@ Rules:
 
 9. If the customer directly asks a question, do NOT start the reply with "নমস্কার". Answer the question directly.
 
-10. Never repeat "নমস্কার" multiple times in the same conversation.            
+10. Never repeat "নমস্কার" multiple times in the same conversation. 
+
+               `
           },
           {
             role: "user",
