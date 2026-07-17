@@ -202,13 +202,58 @@ app.post("/webhook", async (req, res) => {
 
 const history = conversations.get(from);
       // Text Message
-      let userMessage = "";
+     let userMessage = "";
 
-      if (message.type === "text") {
-        userMessage = message.text.body;
-      } else {
-        userMessage = "";
-      }
+if (message.type === "text") {
+    userMessage = message.text.body;
+}
+
+else if (message.type === "audio") {
+
+    const mediaId = message.audio.id;
+
+    const media = await axios.get(
+        `https://graph.facebook.com/v25.0/${mediaId}`,
+        {
+            headers: {
+                Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`
+            }
+        }
+    );
+
+    console.log("Voice URL:", media.data.url);
+const audio = await axios.get(media.data.url, {
+  responseType: "arraybuffer",
+  headers: {
+    Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`
+  }
+});
+
+fs.writeFileSync("voice.ogg", audio.data);
+
+const form = new FormData();
+form.append("file", fs.createReadStream("voice.ogg"));
+form.append("model", "gpt-4o-mini-transcribe");
+
+const transcript = await axios.post(
+  "https://api.openai.com/v1/audio/transcriptions",
+  form,
+  {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      ...form.getHeaders()
+    }
+  }
+);
+
+userMessage = transcript.data.text;
+
+console.log("Voice Text:", userMessage);
+}
+
+else {
+    userMessage = "";
+}
 
       console.log("📩 User:", userMessage);
 
