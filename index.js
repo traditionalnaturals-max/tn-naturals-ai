@@ -216,6 +216,8 @@ app.post("/webhook", async (req, res) => {
       const from = message.from;
 
      let conversation = await Conversation.findOne({ phone: from });
+      console.log("Phone:", from);
+console.log("DB Phone:", conversation?.phone);
 
 if (!conversation) {
     conversation = await Conversation.create({
