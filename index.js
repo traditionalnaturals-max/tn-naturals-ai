@@ -426,6 +426,7 @@ if (history.length > 10) {
 }
 
 conversation.history = history;
+console.log(JSON.stringify(history, null, 2));     
 await conversation.save();
       
       console.log("🤖 Reply:", reply);
