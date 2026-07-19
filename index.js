@@ -422,8 +422,8 @@ history.push(
   }
 );
 
-if (history.length > 10) {
-  history.splice(0, history.length - 10);
+if (history.length > 50) {
+  history.splice(0, history.length - 50);
 }
 
 conversation.history = history;
