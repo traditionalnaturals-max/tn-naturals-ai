@@ -225,6 +225,7 @@ if (!conversation) {
 }
 
 const history = conversation.history;
+ console.log("History Length:", history.length);
       // Text Message
      let userMessage = "";
 
