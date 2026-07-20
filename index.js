@@ -8,6 +8,7 @@ const FormData = require("form-data");
 const mongoose = require("mongoose");
 const path = require("path");
 const conversations = new Map();
+const processedMessages = new Set();
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log("✅ MongoDB Connected"))
 .catch(err => console.error("❌ MongoDB Error:", err));
@@ -212,6 +213,15 @@ app.post("/webhook", async (req, res) => {
       body.entry[0].changes[0].value.messages
     ) {
       const message = body.entry[0].changes[0].value.messages[0];
+      if (processedMessages.has(message.id)) {
+    return res.sendStatus(200);
+}
+
+processedMessages.add(message.id);
+
+setTimeout(() => {
+    processedMessages.delete(message.id);
+}, 600000);
       console.log("Message ID:", message.id);
 
       const from = message.from;
