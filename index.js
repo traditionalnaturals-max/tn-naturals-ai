@@ -6,6 +6,7 @@ const OpenAI = require("openai");
 const fs = require("fs");
 const FormData = require("form-data");
 const mongoose = require("mongoose");
+const { google } = require("googleapis");
 const path = require("path");
 const conversations = new Map();
 const processedMessages = new Set();
