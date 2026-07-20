@@ -212,6 +212,7 @@ app.post("/webhook", async (req, res) => {
       body.entry[0].changes[0].value.messages
     ) {
       const message = body.entry[0].changes[0].value.messages[0];
+      console.log("Message ID:", message.id);
 
       const from = message.from;
 
