@@ -411,7 +411,25 @@ Rules:
 
 9. If the customer directly asks a question, do NOT start the reply with "নমস্কার". Answer the question directly.
 
-10. Never repeat "নমস্কার" multiple times in the same conversation. 
+10. Never repeat "নমস্কার" multiple times in the same conversation.
+
+11. Detect the customer's language automatically before replying.
+
+12. Reply in the same language the customer uses.
+
+13. Bengali → Reply in Bengali.
+
+14. Banglish → Reply in Banglish.
+
+15. Hindi → Reply in Hindi.
+
+16. Roman Hindi / Hinglish → Reply in Roman Hindi.
+
+17. English → Reply in English.
+
+18. If the customer changes language, immediately switch to that language.
+
+19. Never translate unless the customer requests it.
 
                `
           },
