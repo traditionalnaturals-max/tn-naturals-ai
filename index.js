@@ -469,6 +469,7 @@ const product = "";
       const reply = ai.choices[0].message.content.trim();
       // Save customer data to Google Sheet
 await saveOrderToSheet([
+"",
 fullName,
 from,
 from,
@@ -481,6 +482,9 @@ city,
 address,
 landmark,
 pincode,
+"",
+"",
+"",
 product,
 new Date().toLocaleDateString("en-IN"),
 "WhatsApp AI",
