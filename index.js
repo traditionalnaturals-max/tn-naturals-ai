@@ -453,34 +453,41 @@ Rules:
           }
         ]
       });
-
+      
+const fullName = "";
+const age = "";
+const gender = "";
+const language = "";
+const state = "";
+const district = "";
+const city = "";
+const address = "";
+const landmark = "";
+const pincode = "";
+const product = "";
+      
       const reply = ai.choices[0].message.content.trim();
       // Save customer data to Google Sheet
 await saveOrderToSheet([
-  "",
-  "",
-  from,
-  from,
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  "",
-  new Date().toLocaleDateString("en-IN"),
-  "WhatsApp AI",
-  "New Lead",
-  "WhatsApp",
-  new Date().toLocaleDateString("en-IN"),
-  ""
+fullName,
+from,
+from,
+gender,
+age,
+language,
+state,
+district,
+city,
+address,
+landmark,
+pincode,
+product,
+new Date().toLocaleDateString("en-IN"),
+"WhatsApp AI",
+"New Lead",
+"WhatsApp",
+new Date().toLocaleDateString("en-IN"),
+""
 ]);
 history.push(
   {
