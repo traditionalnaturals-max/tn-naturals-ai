@@ -455,6 +455,33 @@ Rules:
       });
 
       const reply = ai.choices[0].message.content.trim();
+      // Save customer data to Google Sheet
+await saveOrderToSheet([
+  "",
+  "",
+  from,
+  from,
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  new Date().toLocaleDateString("en-IN"),
+  "WhatsApp AI",
+  "New Lead",
+  "WhatsApp",
+  new Date().toLocaleDateString("en-IN"),
+  ""
+]);
 history.push(
   {
     role: "user",
@@ -499,6 +526,22 @@ await conversation.save();
 
       console.log("✅ Reply Sent Successfully");
     }
+    async function saveOrderToSheet(rowData) {
+  try {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: "Sheet1!A:Z",
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [rowData],
+      },
+    });
+
+    console.log("✅ Order Saved To Google Sheet");
+  } catch (err) {
+    console.error("❌ Google Sheet Save Error:", err.message);
+  }
+}
 
     res.sendStatus(200);
 
