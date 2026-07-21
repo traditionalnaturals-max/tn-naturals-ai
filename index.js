@@ -536,7 +536,7 @@ await conversation.save();
         values: [rowData],
       },
     });
-
+  console.log(rowData);
     console.log("✅ Order Saved To Google Sheet");
   } catch (err) {
     console.error("❌ Google Sheet Save Error:", err.message);
