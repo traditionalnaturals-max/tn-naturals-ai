@@ -30,12 +30,31 @@ const conversationSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
+  fullName: String,
+gender: String,
+age: String,
+language: String,
+state: String,
+district: String,
+city: String,
+address: String,
+landmark: String,
+pincode: String,
+product: String,
+orderConfirmed: {
+  type: Boolean,
+  default: false
+},
   history: [
     {
       role: String,
       content: String
     }
-  ]
+  ],
+  updatedAt: {
+  type: Date,
+  default: Date.now
+}
 });
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
@@ -246,7 +265,20 @@ console.log("DB Phone:", conversation?.phone);
 if (!conversation) {
     conversation = await Conversation.create({
         phone: from,
-        history: []
+        history: [],
+      fullName: "",
+gender: "",
+age: "",
+language: "",
+state: "",
+district: "",
+city: "",
+address: "",
+landmark: "",
+pincode: "",
+product: "",
+orderConfirmed: false,
+updatedAt: new Date()
     });
 }
 
@@ -454,17 +486,17 @@ Rules:
         ]
       });
       
-const fullName = "";
-const age = "";
-const gender = "";
-const language = "";
-const state = "";
-const district = "";
-const city = "";
-const address = "";
-const landmark = "";
-const pincode = "";
-const product = "";
+const fullName = conversation.fullName;
+const age = conversation.age;
+const gender = conversation.gender;
+const language = conversation.language;
+const state = conversation.state;
+const district = conversation.district;
+const city = conversation.city;
+const address = conversation.address;
+const landmark = conversation.landmark;
+const pincode = conversation.pincode;
+const product = conversation.product;
       
       const reply = ai.choices[0].message.content.trim();
       // Save customer data to Google Sheet
