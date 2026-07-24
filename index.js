@@ -636,14 +636,37 @@ await conversation.save();
     }
     async function saveOrderToSheet(rowData) {
   try {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range:  "CUSTOMER MASTER!A:Z",
-      valueInputOption: "USER_ENTERED",
-      requestBody: {
-        values: [rowData],
-      },
-    });
+    const rows = await sheets.spreadsheets.values.get({
+  spreadsheetId: process.env.GOOGLE_SHEET_ID,
+  range: "CUSTOMER MASTER!A:Z",
+});
+
+const values = rows.data.values || [];
+const existingRow = values.findIndex(
+  row => row[2] === rowData[2]
+);
+
+if (existingRow !== -1) {
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
+    range: `CUSTOMER MASTER!A${existingRow + 2}:Z${existingRow + 2}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [rowData],
+    },
+  });
+
+  console.log("✅ Existing Customer Updated");
+  return;
+}
+await sheets.spreadsheets.values.append({
+  spreadsheetId: process.env.GOOGLE_SHEET_ID,
+  range: "CUSTOMER MASTER!A:Z",
+  valueInputOption: "USER_ENTERED",
+  requestBody: {
+    values: [rowData],
+  },
+});
   console.log(rowData);
     console.log("✅ Order Saved To Google Sheet");
   } catch (err) {
