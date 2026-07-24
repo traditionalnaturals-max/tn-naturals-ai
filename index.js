@@ -581,6 +581,33 @@ if (history.length > 50) {
 conversation.history = history;
 console.log(JSON.stringify(history, null, 2));     
 await conversation.save();
+      if (conversation.orderConfirmed) {
+  await saveOrderToSheet([
+    "",
+    conversation.fullName,
+    from,
+    from,
+    conversation.gender,
+    conversation.age,
+    conversation.language,
+    conversation.state,
+    conversation.district,
+    conversation.city,
+    conversation.address,
+    conversation.landmark,
+    conversation.pincode,
+    "",
+    "",
+    "",
+    conversation.product,
+    new Date().toLocaleDateString("en-IN"),
+    "WhatsApp AI",
+    "Confirmed Order",
+    "WhatsApp",
+    new Date().toLocaleDateString("en-IN"),
+    ""
+  ]);
+}
       
       console.log("🤖 Reply:", reply);
 
