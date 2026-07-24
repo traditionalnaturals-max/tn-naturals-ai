@@ -420,6 +420,9 @@ if (faqReply) {
         const ai = await client.chat.completions.create({
         model: "gpt-4.1-mini",
         temperature: 0,
+       response_format: {
+             type: "json_object"
+         },
         messages: [
           {
             role: "system",
@@ -518,9 +521,7 @@ Rules:
             content: userMessage
           }
         ]
-     response_format: {
-  type: "json_object"
-},     
+  
       });
       
 const fullName = conversation.fullName;
