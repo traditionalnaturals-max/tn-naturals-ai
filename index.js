@@ -518,6 +518,9 @@ Rules:
             content: userMessage
           }
         ]
+     response_format: {
+  type: "json_object"
+},     
       });
       
 const fullName = conversation.fullName;
