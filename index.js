@@ -476,6 +476,40 @@ Rules:
 
 19. Never translate unless the customer requests it.
 
+20. Besides replying to the customer, silently extract customer information.
+
+21. Return ONLY valid JSON.
+
+22. Format:
+
+{
+  "reply": "",
+  "customer": {
+    "fullName": "",
+    "age": "",
+    "gender": "",
+    "language": "",
+    "state": "",
+    "district": "",
+    "city": "",
+    "address": "",
+    "landmark": "",
+    "pincode": "",
+    "product": "",
+    "orderConfirmed": false
+  }
+}
+
+23. Unknown fields must remain "".
+
+24. Never invent customer information.
+
+25. Keep previously known information unchanged unless the customer provides new information.
+
+26. "reply" contains the normal customer reply.
+
+27. "customer" contains only extracted data.
+
                `
           },
           ...history,
@@ -498,33 +532,37 @@ const landmark = conversation.landmark;
 const pincode = conversation.pincode;
 const product = conversation.product;
       
-      const reply = ai.choices[0].message.content.trim();
+let aiResult;
+
+try {
+  aiResult = JSON.parse(ai.choices[0].message.content);
+} catch (err) {
+  console.error("Invalid AI JSON:", err);
+  aiResult = {
+    reply: ai.choices[0].message.content.trim(),
+    customer: {}
+  };
+}
+
+const reply = aiResult.reply || "";
+const customer = aiResult.customer || {};
+      if (customer.fullName) conversation.fullName = customer.fullName;
+if (customer.age) conversation.age = customer.age;
+if (customer.gender) conversation.gender = customer.gender;
+if (customer.language) conversation.language = customer.language;
+if (customer.state) conversation.state = customer.state;
+if (customer.district) conversation.district = customer.district;
+if (customer.city) conversation.city = customer.city;
+if (customer.address) conversation.address = customer.address;
+if (customer.landmark) conversation.landmark = customer.landmark;
+if (customer.pincode) conversation.pincode = customer.pincode;
+if (customer.product) conversation.product = customer.product;
+
+if (customer.orderConfirmed === true) {
+  conversation.orderConfirmed = true;
+}
       // Save customer data to Google Sheet
-await saveOrderToSheet([
-"",
-fullName,
-from,
-from,
-gender,
-age,
-language,
-state,
-district,
-city,
-address,
-landmark,
-pincode,
-"",
-"",
-"",
-product,
-new Date().toLocaleDateString("en-IN"),
-"WhatsApp AI",
-"New Lead",
-"WhatsApp",
-new Date().toLocaleDateString("en-IN"),
-""
-]);
+
 history.push(
   {
     role: "user",
