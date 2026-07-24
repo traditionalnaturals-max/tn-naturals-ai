@@ -543,7 +543,8 @@ try {
     customer: {}
   };
 }
-
+console.log("===== AI RESULT =====");
+console.log(JSON.stringify(aiResult, null, 2));
 const reply = aiResult.reply || "";
 const customer = aiResult.customer || {};
       if (customer.fullName) conversation.fullName = customer.fullName;
