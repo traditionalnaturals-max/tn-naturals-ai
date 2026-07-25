@@ -696,9 +696,15 @@ await sheets.spreadsheets.values.append({
     res.sendStatus(200);
 
   } catch (err) {
-    console.error("❌ ERROR:");
-    console.error(err.response?.data || err.message);
+   console.error("❌ ERROR:");
+console.error(err);
 
+if (err.response) {
+  console.error("Response:", err.response.data);
+}
+
+console.error("Message:", err.message);
+console.error("Stack:", err.stack);
     res.sendStatus(500);
   }
 });
