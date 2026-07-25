@@ -513,6 +513,20 @@ Rules:
 
 27. "customer" contains only extracted data.
 
+28 – Order Confirmation
+
+Set "orderConfirmed": true ONLY when the customer has clearly confirmed the order or agreed to purchase the product.
+
+Examples:
+- "হ্যাঁ অর্ডার করুন"
+- "আমি নেব"
+- "অর্ডার কনফার্ম"
+- "ঠিক আছে পাঠিয়ে দিন"
+- "১ মাসের Full Course দিন"
+- "আমার অর্ডার বুক করুন"
+
+For greetings, FAQs, product enquiries, price enquiries, or if the customer is only asking questions, always keep "orderConfirmed": false.
+
                `
           },
           ...history,
