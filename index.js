@@ -677,7 +677,8 @@ if (history.length > 50) {
 }
 
 conversation.history = history;
-console.log(JSON.stringify(history, null, 2));     
+console.log(JSON.stringify(history, null, 2)); 
+ console.log("ORDER CONFIRMED FROM AI:", aiResult.customer?.orderConfirmed);
 await conversation.save();
       if (conversation.orderConfirmed) {
   await saveOrderToSheet([
