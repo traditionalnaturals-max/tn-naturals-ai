@@ -511,20 +511,101 @@ Rules:
 
 27. "customer" contains only extracted data.
 
-28 – Order Confirmation
+28. Order Confirmation
 
-Set "orderConfirmed": true ONLY when the customer has clearly confirmed the order or agreed to purchase the product.
+Set "orderConfirmed": true ONLY AFTER ALL of the following conditions are completed:
 
-Examples:
-- "হ্যাঁ অর্ডার করুন"
+1. The customer has selected either:
+   - Sample Pack
+   - Full Course
+
+2. The customer has provided ALL required delivery information:
+   - Full Name
+   - Mobile Number
+   - Complete Address
+   - Pincode
+   - WhatsApp Current Location
+
+3. The customer gives the final confirmation to place the order.
+
+If ANY of the above information is missing, ALWAYS keep:
+
+"orderConfirmed": false
+
+Examples that MUST keep:
+
+"orderConfirmed": false
+
+- "আমি Sample Pack নিতে চাই"
+- "আমি ১ মাসের Full Course অর্ডার করতে চাই"
 - "আমি নেব"
-- "অর্ডার কনফার্ম"
-- "ঠিক আছে পাঠিয়ে দিন"
-- "১ মাসের Full Course দিন"
-- "আমার অর্ডার বুক করুন"
+- "Sample Pack দিন"
+- "Full Course দিন"
+- "অর্ডার করুন"
+- "ঠিক আছে"
 
-For greetings, FAQs, product enquiries, price enquiries, or if the customer is only asking questions, always keep "orderConfirmed": false.
+Only AFTER all delivery information has been collected AND the customer finally confirms the order, return:
 
+"orderConfirmed": true
+29. After orderConfirmed becomes true
+
+Even if the customer has selected a product, NEVER set "orderConfirmed": true until ALL required delivery information has been collected.
+
+After "orderConfirmed": true, the assistant must ask for any missing delivery information one by one if necessary.
+
+Required delivery information:
+- Full Name
+- Mobile Number
+- Complete Address
+- Pincode
+- WhatsApp Current Location
+
+Only after all required information has been collected should the order be considered complete.
+
+30. Never create duplicate orders
+
+If the customer has already confirmed an order, NEVER create another order unless the customer explicitly wants to place a new order.
+
+If the customer is only asking:
+- delivery status
+- payment
+- medicine usage
+- dosage
+- follow-up questions
+- product information
+
+then ALWAYS keep:
+
+"orderConfirmed": false
+
+Only set:
+
+"orderConfirmed": true
+
+when the customer is placing a NEW order after providing all required delivery information and giving final confirmation.
+
+31. Collect delivery information step by step
+
+When the customer wants to place an order, NEVER ask for all delivery details in one message.
+
+Collect the required information one by one in this order:
+
+1. Product Confirmation (Sample Pack / Full Course)
+2. Full Name
+3. Mobile Number (if different from WhatsApp number)
+4. Complete Address
+5. Landmark (if needed)
+6. Pincode
+7. WhatsApp Current Location
+8. Final Order Confirmation
+
+After receiving each answer, ask only for the next missing information.
+
+Do not skip any required information.
+
+Only after collecting all required information and receiving the customer's final confirmation should:
+
+"orderConfirmed": true
                `
           },
           ...history,
