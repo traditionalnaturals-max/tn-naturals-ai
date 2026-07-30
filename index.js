@@ -7,6 +7,7 @@ const fs = require("fs");
 const FormData = require("form-data");
 const mongoose = require("mongoose");
 const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
 const path = require("path");
 const conversations = new Map();
 const processedMessages = new Set();
@@ -655,6 +656,11 @@ if (customer.address) conversation.address = customer.address;
 if (customer.landmark) conversation.landmark = customer.landmark;
 if (customer.pincode) conversation.pincode = customer.pincode;
 if (customer.product) conversation.product = customer.product;
+if (customer.currentLocation)
+    conversation.currentLocation = customer.currentLocation;
+
+if (customer.location)
+    conversation.location = customer.location;     
 
 if (customer.orderConfirmed === true) {
   conversation.orderConfirmed = true;
@@ -711,7 +717,9 @@ await conversation.save();
     new Date().toLocaleDateString("en-IN"),
     ""
   ]);
-}
+
+  await sendOrderEmail(conversation, from);
+  }
       
       console.log("🤖 Reply:", reply);
 
@@ -738,6 +746,55 @@ await conversation.save();
 
       console.log("✅ Reply Sent Successfully");
     }
+    const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+    async function sendOrderEmail(conversation, from) {
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: process.env.EMAIL_USER,
+    subject: "📦 New TN Naturals - New Order",
+
+    text: `
+📦 NEW ORDER RECEIVED
+
+👤 Name: ${conversation.fullName || ""}
+
+📱 Mobile: ${from}
+
+💊 Product: ${conversation.product || ""}
+
+🚹 Gender: ${conversation.gender || ""}
+
+🎂 Age: ${conversation.age || ""}
+
+🌐 Language: ${conversation.language || ""}
+
+🏠 Address: ${conversation.address || ""}
+
+📍 Landmark: ${conversation.landmark || ""}
+
+🏙️ City: ${conversation.city || ""}
+
+🗺️ District: ${conversation.district || ""}
+
+🌍 State: ${conversation.state || ""}
+
+📮 Pincode: ${conversation.pincode || ""}
+
+📌 Current Location:
+${conversation.currentLocation || conversation.location || "Not Available"}
+
+----------------------------
+
+🤖 TN Naturals WhatsApp AI
+`,
+  });
+}
     async function saveOrderToSheet(rowData) {
   try {
     const rows = await sheets.spreadsheets.values.get({
