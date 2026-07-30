@@ -680,7 +680,12 @@ conversation.history = history;
 console.log(JSON.stringify(history, null, 2)); 
  console.log("ORDER CONFIRMED FROM AI:", aiResult.customer?.orderConfirmed);
 await conversation.save();
-      if (conversation.orderConfirmed) {
+     if (
+  conversation.orderConfirmed &&
+  conversation.fullName &&
+  conversation.address &&
+  conversation.pincode
+) {
   await saveOrderToSheet([
     "",
     conversation.fullName,
