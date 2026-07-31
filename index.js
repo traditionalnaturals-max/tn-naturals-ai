@@ -393,9 +393,15 @@ if (isBadWord) {
 }
       
 const faqReply = searchFAQ(userMessage);
+history.push({
+    role: "user",
+    content: userMessage
+});      
 console.log("FAQ Result:", faqReply);
 if (faqReply) {
-
+conversation.history = history;
+  await conversation.save();
+  
   await axios.post(
     `https://graph.facebook.com/v25.0/${PHONE_NUMBER_ID}/messages`,
     {
@@ -415,7 +421,6 @@ if (faqReply) {
   );
 
   console.log("✅ FAQ Reply Sent");
-
   return res.sendStatus(200);
 }
 
@@ -675,10 +680,7 @@ if (customer.orderConfirmed === true) {
       // Save customer data to Google Sheet
 
 history.push(
-  {
-    role: "user",
-    content: userMessage
-  },
+ 
   {
     role: "assistant",
     content: reply
