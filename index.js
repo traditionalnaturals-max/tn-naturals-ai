@@ -717,7 +717,8 @@ await conversation.save();
     new Date().toLocaleDateString("en-IN"),
     ""
   ]);
-
+       
+await sendOrderEmail(conversation, from);   
   }
       
       console.log("🤖 Reply:", reply);
