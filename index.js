@@ -9,6 +9,13 @@ const mongoose = require("mongoose");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const path = require("path");
+  const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 const conversations = new Map();
 const processedMessages = new Set();
 mongoose.connect(process.env.MONGODB_URI)
@@ -747,13 +754,7 @@ await sendOrderEmail(conversation, from);
       console.log("✅ Reply Sent Successfully");
       
     }
-    const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+  
   
     async function saveOrderToSheet(rowData) {
   try {
