@@ -810,48 +810,6 @@ console.error("Stack:", err.stack);
     res.sendStatus(500);
   }
 });
-async function sendOrderEmail(conversation, from) {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: process.env.EMAIL_USER,
-    subject: "📦 New TN Naturals - New Order",
-
-    text: `
-📦 NEW ORDER RECEIVED
-
-👤 Name: ${conversation.fullName || ""}
-
-📱 Mobile: ${from}
-
-💊 Product: ${conversation.product || ""}
-
-🚻 Gender: ${conversation.gender || ""}
-
-🎂 Age: ${conversation.age || ""}
-
-🌐 Language: ${conversation.language || ""}
-
-🏠 Address: ${conversation.address || ""}
-
-📍 Landmark: ${conversation.landmark || ""}
-
-🏙️ City: ${conversation.city || ""}
-
-🏢 District: ${conversation.district || ""}
-
-🌍 State: ${conversation.state || ""}
-
-📮 Pincode: ${conversation.pincode || ""}
-
-📌 Current Location:
-${conversation.currentLocation || conversation.location || "Not Available"}
-
-----------------------------
-
-🤖 TN Naturals WhatsApp AI
-`
-  });
-}
 
 // =============================
 // Start Server
